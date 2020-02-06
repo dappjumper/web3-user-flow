@@ -44,41 +44,42 @@ const middleware = {
 function _Web3UserFlow(options,app){
 	options = options || {};
 	var log = (!options.verbose ? ()=>{} : console.log)
-	log("Web3 User Flow initiated"+(options.database ? ' with '+typeof options.database+' database.' : ' without database'))
+	
+	log("web3-user-flow loading verbosely "+(options.database ? 'with '+typeof options.database+' database.' : 'without database'))
+	
 	var wuf = {
 		conf: {...defaultOptions,...options},
 		db: (typeof options.database == 'string' ? 'connect' : (options.database||false)),
 		app: app || false
 	}
 
-	if(wuf.app) app.get('/wuf/:static', (req,res)=>{res.sendFile(__dirname+'/dist/'+req.params.static);})
+	if(wuf.app) {
+		log('client-side javascript available at /wuf/wuf.js')
+		app.get('/wuf/:static', (req,res)=>{res.sendFile(__dirname+'/dist/'+req.params.static);})
+	}
 
 	for(var prop in middleware) {
 		wuf[prop] = middleware[prop].bind(wuf);
 	}
 
-	if(wuf.db == 'connect') {
-		return new Promise((resolve,reject)=>{
-			log('Connecting to database')
-			let MongoClient = require('mongodb').MongoClient
-			MongoClient.connect(options.database,{useUnifiedTopology: true})
-				.then(function (db) {
-					log('Database connection success')
-					wuf.db = db
-					resolve(wuf)
-				})
-				.catch(function (err) {
-					log('Database connection failed')
-					wuf.db = false
-					resolve(wuf)
-				})
-		})
-	} else {
-		log('No database connection established')
-		return new Promise((resolve,reject)=>{
+	return (wuf.db == 'connect' ? new Promise((resolve,reject)=>{
+		log('Connecting to database')
+		let MongoClient = require('mongodb').MongoClient
+		MongoClient.connect(options.database,{useUnifiedTopology: true})
+		.then(function (db) {
+			log('Database connection success')
+			wuf.db = db
 			resolve(wuf)
 		})
-	}
+		.catch(function (err) {
+			log('Database connection failed')
+			wuf.db = false
+			resolve(wuf)
+		})
+	}) : new Promise((resolve,reject)=>{
+		log('No database connection established')
+		resolve(wuf)
+	}))
 }
 
 module.exports = _Web3UserFlow;
