@@ -25,19 +25,37 @@ const defaultOptions = {
 }
 
 var register = function(req, res, next){
-	res.send(this.conf)
+	next();
 }
 
-function _Web3UserFlow(options){
+var protected = function(req,res,next){
+	if(req.user){
+		next();
+	} else {
+		res.status(500).json({error:'login is required'});
+	}
+}
+
+const middleware = {
+	register: register,
+	protected: protected
+}
+
+function _Web3UserFlow(options,app){
 	options = options || {};
 	var log = (!options.verbose ? ()=>{} : console.log)
 	log("Web3 User Flow initiated"+(options.database ? ' with '+typeof options.database+' database.' : ' without database'))
 	var wuf = {
 		conf: {...defaultOptions,...options},
-		db: (typeof options.database == 'string' ? 'connect' : (options.database||false))
+		db: (typeof options.database == 'string' ? 'connect' : (options.database||false)),
+		app: app || false
 	}
 
-	wuf.register = register.bind(wuf);
+	if(wuf.app) app.get('/wuf/:static', (req,res)=>{res.sendFile(__dirname+'/dist/'+req.params.static);})
+
+	for(var prop in middleware) {
+		wuf[prop] = middleware[prop].bind(wuf);
+	}
 
 	if(wuf.db == 'connect') {
 		return new Promise((resolve,reject)=>{

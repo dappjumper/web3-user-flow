@@ -5,19 +5,13 @@ require('dotenv').config()
 
 var init = require('./web3userflow');
 
-var wuf = {};
-
 init({
 	database: process.env.MONGODB_URI,
 	verbose: true
-}).then((result)=>{
+}, app).then((result)=>{
 
 	app.get('/', function (req, res) {
-	  res.send('Hello World!<br/><br/>')
-	})
-
-	app.post('/register', result.register, (req, res)=>{
-		//
+	  res.sendFile(__dirname+'/dist/index.html');
 	})
 
 	app.listen(3000)
