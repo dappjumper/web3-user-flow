@@ -23,7 +23,13 @@ const verify = (publicKey, signature, content)=>{
 
 const defaultOptions = {
 	database: false,
-	verbose: false
+	verbose: false,
+	registrationChallenge: (user)=>{
+		return "I wish to register on this work in progress as: "+user.address
+	},
+	loginChallenge: (user)=>{
+		return "I wish to login on this work in progress as: "+user.address+" with nonce: "+(parseInt(user.nonce)+1)
+	}
 }
 
 var protected = function(req,res,next){
@@ -39,23 +45,28 @@ const middleware = {
 }
 
 const routes = {
-	'/wuf/:static/:sub?/:sub2?/:sub3?': {
+	'/wuf/dist/:static/:sub?/:sub2?/:sub3?': {
 		method: "get",
 		function: (req,res)=>{
 			res.sendFile(__dirname+'/dist/'+req.params.static+(req.params.sub||'')+(req.params.sub2||'')+(req.params.sub3||''));
 		}
 	},
-	'/wuf/api/user': {
+	'/wuf/api/user/:address': {
 		method: "get",
 		description: "",
 		protected: false,
-		function: (req,res)=>{
-			res.send("200");
-			let userAddress = req.body.address;
+		function: function(req,res){
+			let userAddress = req.params.address;
 			if(typeof userAddress == 'string' && (userAddress||'').length == 42) {
-				res.send({address:userAddress})
+				User.model.findOne({address:userAddress}, "address nonce", function(err, user){
+					if(!err && user) {
+						res.send({user: user, challenge:this.loginChallenge({address:user.address,nonce:user.nonce})})
+					} else {
+						res.send({error:"User not found",challenge:this.registrationChallenge({address:userAddress})})
+					}
+				}.bind(this))
 			} else {
-				res.send({error:"Invalid address"})
+				res.send({error:"Invalid address",address:userAddress})
 			}
 		}
 	}
@@ -82,17 +93,17 @@ function _Web3UserFlow(options,app){
 		let route = routes[prop];
 		if(route.protected) {
 			log('Protected route: "'+prop+'" available')
-			wuf.app[route.method](prop,wuf.protected, route.function)
+			wuf.app[route.method](prop,wuf.protected, route.function.bind(wuf.conf))
 		} else {
 			log('Public route: "'+prop+'" available')
-			wuf.app[route.method](prop,route.function)
+			wuf.app[route.method](prop,route.function.bind(wuf.conf))
 		}
 	}
 
 	return (wuf.db == 'connect' ? new Promise((resolve,reject)=>{
 		log('Connecting to database')
-		let MongoClient = require('mongodb').MongoClient
-		MongoClient.connect(options.database,{useUnifiedTopology: true})
+		let mongoose = require('mongoose')
+		mongoose.connect(options.database,{useUnifiedTopology: true,useNewUrlParser: true})
 		.then(function (db) {
 			log('Database connection success')
 			wuf.db = db

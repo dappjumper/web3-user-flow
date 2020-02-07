@@ -12,12 +12,12 @@ var userSchema = new Schema({
   },
   created: { type: Date, default: Date.now },
   nonce: Number,
-  meta: {
-    
-  }
+  meta: Object
 });
+
+var userModel = mongoose.model('User', userSchema); 
 
 module.exports = {
   schema: userSchema,
-  model: mongoose.model('User', userSchema)
+  model: userModel
 }
