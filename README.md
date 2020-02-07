@@ -3,7 +3,6 @@
 Dependencies:
 - express
 - ethereumjs-util
-- mongodb
 - mongoose
 
 Developer dependencies:

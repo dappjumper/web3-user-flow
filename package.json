@@ -1,7 +1,7 @@
 {
-  "name": "web3-mongodb-middleware",
+  "name": "web3-login-flow",
   "version": "0.1.0",
-  "description": "A simple module for Ethereum cryptography",
+  "description": "A simple module for Ethereum cryptography for use with Express",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -20,7 +20,6 @@
     "dotenv": "^8.2.0",
     "ethereumjs-util": "^6.2.0",
     "express": "^4.17.1",
-    "mongodb": "^3.5.2",
     "mongoose": "^5.8.11"
   }
 }
