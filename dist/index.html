@@ -1,8 +1,66 @@
 <html>
+	<style>
+		html,body{
+			background:#fafafa;
+			color:#333333;
+			padding-top:50px;
+		}
+		#app > * {
+			max-width:800px;
+			width:100%;
+			margin:0 auto;
+			display:block;
+			box-sizing:border-box;
+			padding:32px;
+		}
+		header {
+			padding:16px 32px!important;
+			background:#333333;
+			color:#fafafa;
+			overflow:hidden;
+		}
+		.address {
+			display:inline-block;
+			float:right;
+			font-family:monospace;
+		}
+
+		body { /* Opacity fadein on load to prevent ugly placeholders */
+			transition:opacity .1s;
+			opacity:1;
+		}
+
+		.loading {
+			pointer-events:none;
+			opacity:0.5;
+		}
+
+	</style>
 	<head>
 		
 	</head>
-	<body>
+	<body style="opacity:0;" onload="window.wuf.init()">
+		<div id="app">
+			<header>
+				<div class="address">
+					{{user.address||'Not logged in'}}
+				</div>
+			</header>
+			<div v-if="metamask.installed && !metamask.connected">
+				Metamask is installed, but user is not connected
+				<button v-on:click="connectWeb3()" v-bind:class="{loading:loading.web3connect}">Connect</button>
+				<div v-if="errors.web3connect">{{errors.web3connect}}</div>
+			</div>
+			<div v-if="metamask.installed && metamask.connected">
+				Metamask is installed, and user is {{user.address}}
+			</div>
+			<div v-if="!metamask.installed">
+				Metamask is not installed
+			</div>
+		</div>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+		<script type="text/javascript" src="/wuf/web3.js"></script>
 		<script type="text/javascript" src="/wuf/wuf.js"></script>
+		<script type="text/javascript" src="/dist/main.js"></script>
 	</body>
 </html>

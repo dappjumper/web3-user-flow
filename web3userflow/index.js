@@ -1,5 +1,7 @@
 const EthUtil = require('ethereumjs-util');
 
+const User = require('./user');
+
 const verify = (publicKey, signature, content)=>{
 	return new Promise((resolve,reject)=>{
 		let res = EthUtil.fromRpcSig(signature);
@@ -24,10 +26,6 @@ const defaultOptions = {
 	verbose: false
 }
 
-var register = function(req, res, next){
-	next();
-}
-
 var protected = function(req,res,next){
 	if(req.user){
 		next();
@@ -37,8 +35,30 @@ var protected = function(req,res,next){
 }
 
 const middleware = {
-	register: register,
 	protected: protected
+}
+
+const routes = {
+	'/wuf/:static/:sub?/:sub2?/:sub3?': {
+		method: "get",
+		function: (req,res)=>{
+			res.sendFile(__dirname+'/dist/'+req.params.static+(req.params.sub||'')+(req.params.sub2||'')+(req.params.sub3||''));
+		}
+	},
+	'/wuf/api/user': {
+		method: "get",
+		description: "",
+		protected: false,
+		function: (req,res)=>{
+			res.send("200");
+			let userAddress = req.body.address;
+			if(typeof userAddress == 'string' && (userAddress||'').length == 42) {
+				res.send({address:userAddress})
+			} else {
+				res.send({error:"Invalid address"})
+			}
+		}
+	}
 }
 
 function _Web3UserFlow(options,app){
@@ -53,13 +73,20 @@ function _Web3UserFlow(options,app){
 		app: app || false
 	}
 
-	if(wuf.app) {
-		log('client-side javascript available at /wuf/wuf.js')
-		app.get('/wuf/:static', (req,res)=>{res.sendFile(__dirname+'/dist/'+req.params.static);})
+	for(var prop in middleware) {
+		log('Loading middleware: '+prop)
+		wuf[prop] = middleware[prop].bind(wuf);
 	}
 
-	for(var prop in middleware) {
-		wuf[prop] = middleware[prop].bind(wuf);
+	if(wuf.app) for(var prop in routes) {
+		let route = routes[prop];
+		if(route.protected) {
+			log('Protected route: "'+prop+'" available')
+			wuf.app[route.method](prop,wuf.protected, route.function)
+		} else {
+			log('Public route: "'+prop+'" available')
+			wuf.app[route.method](prop,route.function)
+		}
 	}
 
 	return (wuf.db == 'connect' ? new Promise((resolve,reject)=>{

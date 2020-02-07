@@ -14,6 +14,10 @@ init({
 	  res.sendFile(__dirname+'/dist/index.html');
 	})
 
+	app.get('/dist/:file', function(req,res){
+		res.sendFile(__dirname+'/dist/'+req.params.file)
+	})
+
 	app.listen(3000)
 
 })
