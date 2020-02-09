@@ -3,21 +3,17 @@ var app = express()
 
 require('dotenv').config()
 
-var init = require('./web3userflow');
+require('./web3userflow')({
+	database: process.env.MONGODB_URI || "mongodb://localhost:27017/web3_example",
+	verbose: (process.env.environment == 'development')
+}, app);
 
-init({
-	database: process.env.MONGODB_URI,
-	verbose: true
-}, app).then((wuf)=>{
-
-	app.get('/', function (req, res) {
-	  res.sendFile(__dirname+'/dist/index.html');
-	})
-
-	app.get('/dist/:file', function(req,res){
-		res.sendFile(__dirname+'/dist/'+req.params.file)
-	})
-
-	app.listen(process.env.PORT || 3000)
-
+app.get('/', function (req, res) {
+  res.sendFile(__dirname+'/dist/index.html');
 })
+
+app.get('/dist/:file', function(req,res){
+	res.sendFile(__dirname+'/dist/'+req.params.file)
+})
+
+app.listen(process.env.PORT || 3000)
