@@ -2,20 +2,20 @@
 
 https://web3-user-flow.herokuapp.com/ <- Live example
 
-##Dependencies:
+## Dependencies:
 - express
 - ethereumjs-util
 - mongoose
 
-###Developer dependencies:
+### Developer dependencies:
 - dotenv
 
-##Installation
+## Installation
 - Download subfolder "web3userflow"
 - Place anywhere in your project
 - Require the module and pass configuration and express object
 
-##Example (without promises)
+## Example (without promises)
 Does not wait for database connection
 ```
 require('./web3userflow')({
@@ -27,7 +27,7 @@ require('./web3userflow')({
 
 ```
 
-##Example (with promises)
+## Example (with promises)
 Wait for database connection to be established
 ```
 require('./web3userflow')({
