@@ -4,6 +4,7 @@
   "description": "A simple module for Ethereum cryptography for use with Express",
   "main": "index.js",
   "scripts": {
+    "start": "node index",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
