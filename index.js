@@ -18,6 +18,6 @@ init({
 		res.sendFile(__dirname+'/dist/'+req.params.file)
 	})
 
-	app.listen(3000)
+	app.listen(process.env.PORT || 3000)
 
 })
