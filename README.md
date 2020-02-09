@@ -41,7 +41,7 @@ require('./web3userflow')({
 ```
 
 ## Clientside Example (Using bundled files + VueJS from CDN)
-### main.js
+### index.html
 ```html
 <body style="opacity:0;">
 		<div id="app">
