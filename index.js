@@ -5,7 +5,7 @@ require('dotenv').config()
 
 require('./web3userflow')({
 	database: process.env.MONGODB_URI || "mongodb://localhost:27017/web3_example",
-	verbose: (process.env.environment == 'development')
+	verbose: (process.env.NODE_ENV == 'development')
 }, app);
 
 app.get('/', function (req, res) {
