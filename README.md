@@ -21,7 +21,7 @@ Does not wait for database connection
 require('./web3userflow')({
 	database: 'mongodb://localhost:27017/web3_example', //Use local mongodb 
 	verbose: true //Set to false to prevent log spam
-}, app); //Remember to pass express app object
+}, app);
 
 //app.listen etc
 
@@ -37,5 +37,5 @@ require('./web3userflow')({
 
 //app.listen etc
 
-}); //Remember to pass express app object
+}); 
 ```
