@@ -17,7 +17,7 @@ https://web3-user-flow.herokuapp.com/ <- Live example
 
 ## Example (without promises)
 Does not wait for database connection
-```
+```javascript
 require('./web3userflow')({
 	database: 'mongodb://localhost:27017/web3_example', //Use local mongodb 
 	verbose: true //Set to false to prevent log spam
@@ -29,7 +29,7 @@ require('./web3userflow')({
 
 ## Example (with promises)
 Wait for database connection to be established
-```
+```javascript
 require('./web3userflow')({
 	database: 'mongodb://localhost:27017/web3_example', //Use local mongodb 
 	verbose: true //Set to false to prevent log spam
