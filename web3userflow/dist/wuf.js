@@ -26,11 +26,22 @@ wuf.getWeb3 = ()=>{
 		if (typeof Web3 !== 'undefined') {
 			wuf.provider = new Web3(Web3.givenProvider);
 			wuf.account = wuf.provider.givenProvider;
-			resolve(wuf.account.selectedAddress)
+			resolve();
         } else {
+            console.log("Web3provider not found")
             reject();
         }
 	})
+}
+
+wuf.hasVisibleAccount = ()=>{
+    return new Promise((resolve, reject)=>{
+        if(wuf.account.selectedAddress) {
+            resolve(wuf.account.selectedAddress)
+        } else {
+            reject()
+        }
+    })
 }
 
 wuf.connectWeb3 = ()=>{
