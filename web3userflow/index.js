@@ -29,6 +29,17 @@ const defaultOptions = {
 	},
 	loginChallenge: (user)=>{
 		return "I wish to login on this work in progress as: "+user.address+" with nonce: "+(parseInt(user.nonce)+1)
+	},
+	decodeSignature: (signature, content)=>{
+		return new Promise((resolve, reject)=>{
+			var res = EthUtil.fromRpcSig(signature);
+			var addr = EthUtil.bufferToHex(EthUtil.pubToAddress(EthUtil.ecrecover(EthUtil.hashPersonalMessage(Buffer.from(content)), res.v, res.r, res.s)));
+			if(addr) {
+				resolve(addr)
+			} else {
+				reject()
+			}
+		})
 	}
 }
 
@@ -60,7 +71,7 @@ const routes = {
 			if(typeof userAddress == 'string' && (userAddress||'').length == 42) {
 				User.model.findOne({address:userAddress}, "address nonce", function(err, user){
 					if(!err && user) {
-						res.send({user: user, challenge:this.loginChallenge({address:user.address,nonce:user.nonce})})
+						res.send({user: user.address, challenge:this.loginChallenge({address:user.address,nonce:user.nonce})})
 					} else {
 						res.send({error:"User not found",challenge:this.registrationChallenge({address:userAddress})})
 					}
@@ -68,6 +79,35 @@ const routes = {
 			} else {
 				res.send({error:"Invalid address",address:userAddress})
 			}
+		}
+	},
+	'/wuf/api/user/:address/getjwt': {
+		method: "post",
+		description:"",
+		protected: false,
+		function: function(req,res){
+			if(!req.params.address) return res.send({error:"No address specified"})
+			if(!req.body.signature) return res.send({error:"No signature attached"})
+			User.model.findOne({address:req.params.address}, "address nonce", (err, user)=>{
+				let challenge = ""
+				if(err) {
+					return res.send({error:"Could not look for user: "+req.params.address})
+				}
+				if(user) {
+					//Login challenge
+					challenge = this.loginChallenge(user)
+				} else {
+					//Registration challenge
+					challenge = this.registrationChallenge({address:req.params.address})
+				}
+				this.decodeSignature(req.body.signature, challenge)
+					.then((address)=>{
+						res.send({error:"Signature resolved as made by "+address})
+					})
+					.catch(()=>{
+						res.send({error:"Invalid signature"})
+					})
+			})
 		}
 	}
 }
@@ -92,10 +132,10 @@ function _Web3UserFlow(options,app){
 	if(wuf.app) for(var prop in routes) {
 		let route = routes[prop];
 		if(route.protected) {
-			log('Protected route: "'+prop+'" available')
+			log('Protected route: <'+route.method+'>"'+prop+'" available')
 			wuf.app[route.method](prop,wuf.protected, route.function.bind(wuf.conf))
 		} else {
-			log('Public route: "'+prop+'" available')
+			log('Public route: <'+route.method+'>"'+prop+'" available')
 			wuf.app[route.method](prop,route.function.bind(wuf.conf))
 		}
 	}

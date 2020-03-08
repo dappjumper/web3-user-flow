@@ -28,39 +28,44 @@ wuf.getWeb3 = ()=>{
 			wuf.account = wuf.provider.givenProvider;
 			resolve();
         } else {
-            console.log("Web3provider not found")
             reject();
         }
 	})
 }
 
 wuf.hasVisibleAccount = ()=>{
-    return new Promise((resolve, reject)=>{
-        if(wuf.account.selectedAddress) {
-            resolve(wuf.account.selectedAddress)
-        } else {
-            reject()
-        }
-    })
+    if(wuf.account.selectedAddress) {
+        return wuf.account.selectedAddress
+    } else {
+        return false
+    }
 }
 
 wuf.connectWeb3 = ()=>{
 	return new Promise((resolve, reject)=>{
-		if(window.ethereum) {
-			window.ethereum.enable().then((response)=>{
-				resolve();
-			}).catch((error)=>{
-				reject("Metamask connection prompt was denied");
-			});
-		} else {
-			reject("No available provider")
-		}
+        window.ethereum.enable()
+        .then(()=>{
+            resolve()
+        })
+        .catch(()=>{
+            reject()
+        })
 	})
+}
+
+wuf.sign = (address, message) => {
+    return new Promise((resolve, reject)=>{
+        let hashedMessage = web3.fromUtf8(message)
+        web3.personal.sign(hashedMessage, address, function (err, result) {
+            if (err) return reject()
+            resolve(result)
+          })
+    })
 }
 
 wuf.apicall = {
 	getUser: (user)=>{
-		return wuf.api('user/' + user.address)
+		return wuf.api('user/' + address)
 	}
 }
 
@@ -70,7 +75,7 @@ wuf.api = (endpoint, publicKey, payload)=>{
 		xhttp.onreadystatechange = function () {
 			console.log(wuf.host+wuf.url+endpoint)
 		    if (this.readyState == 4 && this.status == 200) {
-		        resolve(this.responseText)
+		        resolve(JSON.parse(this.responseText))
 		    } else {
 		        if (this.readyState == 4 && this.status != 200) {
 		            reject()
@@ -80,7 +85,9 @@ wuf.api = (endpoint, publicKey, payload)=>{
 		xhttp.open((payload ? 'POST' : 'GET'), wuf.host+wuf.url+endpoint, true);
 		if(publicKey) xhttp.setRequestHeader('publicKey', publicKey);
 		if (typeof wuf.getJWT() == 'string') xhttp.setRequestHeader('jwtToken', wuf.getJWT());
-		xhttp.send((payload ? JSON.stringify(payload) : null));
+		let load = (payload ? JSON.stringify(payload) : null)
+        if(load) xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhttp.send(load);
 	})
 }
 
