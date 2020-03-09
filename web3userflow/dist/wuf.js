@@ -8,7 +8,11 @@ window.wuf = {
 }
 
 wuf.getJWT = ()=>{
-	return localStorage.getItem(wuf.basePrefix+'jwt');
+	return JSON.parse(localStorage.getItem(wuf.basePrefix+'jwt'));
+}
+
+wuf.setJWT = (token)=>{
+    localStorage.setItem(wuf.basePrefix+'jwt', JSON.stringify(token))
 }
 
 wuf.checkJWT = ()=>{
@@ -78,13 +82,20 @@ wuf.api = (endpoint, publicKey, payload)=>{
 		        resolve(JSON.parse(this.responseText))
 		    } else {
 		        if (this.readyState == 4 && this.status != 200) {
-		            reject()
+		            console.log(this)
+                    reject()
 		        }
 		    }
 		};
 		xhttp.open((payload ? 'POST' : 'GET'), wuf.host+wuf.url+endpoint, true);
 		if(publicKey) xhttp.setRequestHeader('publicKey', publicKey);
-		if (typeof wuf.getJWT() == 'string') xhttp.setRequestHeader('jwtToken', wuf.getJWT());
+		try {
+            let jwt = wuf.getJWT();
+            if(jwt.token) xhttp.setRequestHeader('Authorization', "Bearer "+wuf.getJWT().token);
+        } catch(e) {
+            
+        }
+        //if (typeof wuf.getJWT() == 'string') xhttp.setRequestHeader('jwtToken', JSON.parse(wuf.getJWT()).token);
 		let load = (payload ? JSON.stringify(payload) : null)
         if(load) xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         xhttp.send(load);

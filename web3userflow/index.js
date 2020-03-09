@@ -2,6 +2,9 @@ const EthUtil = require('ethereumjs-util');
 
 const User = require('./user');
 
+const Jwt = require('express-jwt');
+const JwtGen = require('jsonwebtoken');
+
 const verify = (publicKey, signature, content)=>{
 	return new Promise((resolve,reject)=>{
 		let res = EthUtil.fromRpcSig(signature);
@@ -81,6 +84,20 @@ const routes = {
 			}
 		}
 	},
+	'/wuf/api/user/:address/profile': {
+		method: "get",
+		description:"",
+		protected: true,
+		function: function(req,res){
+			User.model.findOne({address:req.user.address}, function(err, user){
+				if(!err && user) {
+					res.send({user: user})
+				} else {
+					res.send({error:"User not found"})
+				}
+			}.bind(this))
+		}
+	},
 	'/wuf/api/user/:address/getjwt': {
 		method: "post",
 		description:"",
@@ -102,7 +119,16 @@ const routes = {
 				}
 				this.decodeSignature(req.body.signature, challenge)
 					.then((address)=>{
-						res.send({error:"Signature resolved as made by "+address})
+						JwtGen.sign({ address: address }, process.env.JWTSECRET, function(err, token) {
+						  if(err) return res.send({error:"Could not generate token"})
+						  User.model.updateOne({address: address}, {$set: {address:address}, $inc:{nonce: 1}}, {upsert:true})
+							.then(()=>{
+								res.send({token:token, address:address})
+							})
+							.catch(()=>{
+								res.send({error:"Failed to login or register"})
+							})
+						});
 					})
 					.catch(()=>{
 						res.send({error:"Invalid signature"})
@@ -133,7 +159,7 @@ function _Web3UserFlow(options,app){
 		let route = routes[prop];
 		if(route.protected) {
 			log('Protected route: <'+route.method+'>"'+prop+'" available')
-			wuf.app[route.method](prop,wuf.protected, route.function.bind(wuf.conf))
+			wuf.app[route.method](prop,Jwt({secret: process.env.JWTSECRET }), route.function.bind(wuf.conf))
 		} else {
 			log('Public route: <'+route.method+'>"'+prop+'" available')
 			wuf.app[route.method](prop,route.function.bind(wuf.conf))
