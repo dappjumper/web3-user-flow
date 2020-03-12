@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var userSchema = new Schema({
   address: String,
-  created: { type: Date, default: Date.now },
+  created: { type: Date, default: new Date().getTime() },
   nonce: {
   	type: Number,
   	default: 0

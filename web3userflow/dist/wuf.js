@@ -38,6 +38,7 @@ wuf.getWeb3 = ()=>{
 }
 
 wuf.hasVisibleAccount = ()=>{
+    if(!wuf.account) return false;
     if(wuf.account.selectedAddress) {
         return wuf.account.selectedAddress
     } else {

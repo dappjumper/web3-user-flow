@@ -121,7 +121,7 @@ const routes = {
 					.then((address)=>{
 						JwtGen.sign({ address: address }, process.env.JWTSECRET, function(err, token) {
 						  if(err) return res.send({error:"Could not generate token"})
-						  User.model.updateOne({address: address}, {$set: {address:address}, $inc:{nonce: 1}}, {upsert:true})
+						  User.model.updateOne({address: address}, {$set: {address:address}, $inc:{nonce: 1}, $setOnInsert: {created: new Date().getTime()}}, {upsert:true})
 							.then(()=>{
 								res.send({token:token, address:address})
 							})
