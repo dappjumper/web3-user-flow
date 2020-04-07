@@ -39,7 +39,7 @@ require('./web3userflow')({
 
 }); 
 ```
-
+.
 ## Clientside Example (Using bundled files + VueJS from CDN)
 ### index.html
 ```html
