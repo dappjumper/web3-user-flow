@@ -38,7 +38,7 @@ require('./web3userflow')({
 //app.listen etc
 
 }); 
-```
+``` 
 .
 ## Clientside Example (Using bundled files + VueJS from CDN)
 ### index.html
